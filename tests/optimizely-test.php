@@ -70,6 +70,8 @@ class Optimizely_Test extends PHPUnit_Framework_TestCase {
 
 	private function get_experiment() {
 		$experiments = $this->optimizely->get_experiments( $this->project_id );
+		$this->assertTrue( count( $experiments ) > 0 );
+
 		return $experiments[0];
 	}// end get_experiment
 
@@ -115,14 +117,148 @@ class Optimizely_Test extends PHPUnit_Framework_TestCase {
 		$this->assertNotEquals( count( $experiments ), count( $experiments_again ), 'confirm experiment was deleted, not archived' );
 	}//end test_delete_experiment
 
+	public function test_create_schedule() {
+		$experiment = $this->get_experiment();
+
+		$schedule = $this->optimizely->create_schedule( $experiment->id, array(
+			'start_time' => gmdate( $this->optimizely->date_format, strtotime( 'tomorrow' ) ),
+			'stop_time' => gmdate( $this->optimizely->date_format, strtotime( '+1 week' ) ),
+		) );
+
+		$this->assertObjectHasAttribute( 'id', $schedule );
+		$this->assertEquals( $experiment->id, $schedule->experiment_id );
+	}//end test_create_schedule
+
+	private function get_schedule() {
+		$experiment = $this->get_experiment();
+		$schedules = $this->optimizely->get_schedules( $experiment->id );
+
+		$this->assertTrue( count( $schedules ) > 0 );
+		return $schedules[0];
+	}// end get_schedule
+
+	public function test_update_schedule() {
+		$schedule = $this->get_schedule();
+
+		$new_start_time = gmdate( $this->optimizely->date_format, strtotime( '+2 days' ) );
+
+		$schedule = $this->optimizely->update_schedule( $experiment->id, array(
+			'start_time' => $new_start_time
+		) );
+
+		$this->assertEquals( $new_start_time, $schedule->start_time );
+	}//end test_update_schedule
+
+	public function test_get_schedules() {
+		$this->get_schedule();
+	}//end test_get_schedules
+
+	public function test_get_schedule() {
+		$schedule = $this->get_schedule();
+
+		$the_schedule = $this->optimizely->get_schedule( $schedule->id );
+		$this->assertObjectHasAttribute( 'id', $the_schedule );
+	}//end test_get_schedule
+
+	public function test_delete_schedule() {
+		$experiment = $this->get_experiment();
+		$schedules = $this->optimizely->get_schedules( $experiment->id );
+
+		$schedule = $schedules[0];
+
+		$deleted = $this->optimizely->delete_schedule( $schedule->id );
+
+		$new_schedules = $this->optimizely->get_schedules( $experiment->id );
+		$this->assertNotEquals( count( $schedules ), count( $new_schedules ) );
+	}//end test_delete_schedule
+
+	public function test_get_variations() {
+
+	}//end test_get_variations
+
+	public function test_get_variation() {
+
+	}//end test_get_variation
+
+	public function test_create_variation() {
+
+	}//end test_create_variation
+
+	public function test_update_variation() {
+
+	}//end test_update_variation
+
+	public function test_delete_variation() {
+
+	}//end test_delete_variation
+
+	public function test_get_goals() {
+
+	}//end test_get_goals
+
+	public function test_get_goal() {
+
+	}//end test_get_goal
+
+	public function test_create_goal() {
+
+	}//end test_create_goal
+
+	public function test_update_goal() {
+
+	}//end test_update_goal
+
+	public function test_delete_goal() {
+
+	}//end test_delete_goal
+
+	public function test_add_goal() {
+
+	}//end test_add_goal
+
+	public function test_remove_goal() {
+
+	}//end test_remove_goal
+
+	public function test_get_audiences() {
+
+	}//end test_get_audiences
+
+	public function test_get_audience() {
+
+	}//end test_get_audience
+
+	public function test_create_audience() {
+
+	}//end test_create_audience
+
+	public function test_update_audience() {
+
+	}//end test_update_audience
+
+	public function test_get_dimensions() {
+
+	}//end test_get_dimensions
+
+	public function test_get_dimension() {
+
+	}//end test_get_dimension
+
+	public function test_create_dimension() {
+
+	}//end test_create_dimension
+
+	public function test_update_dimension() {
+
+	}//end test_update_dimension
+
+	public function test_delete_dimension() {
+
+	}//end test_delete_dimension
+
+
 	/*
 	@TODO: Add eventually:
-
-	$schedules = $optimizely->get_schedules( $experiments[43]->id );
-	print_r( $schedules );
-	$schedule = $optimizely->get_schedule( $schedules[0]->id );
-	print_r( $schedule );
-	// */
 
 	/*
 	$variations = $optimizely->get_variations( $experiments[43]->id );

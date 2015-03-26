@@ -1,5 +1,8 @@
 <?php
 
+/*
+ * Version 0.1
+ */
 
 class Optimizely {
 	/**
@@ -51,6 +54,11 @@ class Optimizely {
 	 * base url for API
 	 */
 	protected $api_url = 'https://www.optimizelyapis.com/experiment/v1/';
+
+	/**
+	 * preferred date format for dates
+	 */
+	public $date_format = 'Y-m-d\TH:i:s\Z';
 
 	/**
 	 * Setup the object
@@ -291,7 +299,7 @@ class Optimizely {
 	public function create_schedule( $experiment_id, $options ) {
 		// requires either start_time or end_time
 		if ( ! isset( $options['start_time'] )
-		  && ! isset( $options['end_time'] ) ) {
+		  && ! isset( $options['stop_time'] ) ) {
 			return FALSE;
 		}//end if
 
@@ -308,7 +316,7 @@ class Optimizely {
 	public function update_schedule( $schedule_id, $options ) {
 		// requires either start_time or end_time
 		if ( ! isset( $options['start_time'] )
-		  && ! isset( $options['end_time'] ) ) {
+		  && ! isset( $options['stop_time'] ) ) {
 			return FALSE;
 		}//end if
 

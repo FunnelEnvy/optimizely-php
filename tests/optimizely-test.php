@@ -172,24 +172,63 @@ class Optimizely_Test extends PHPUnit_Framework_TestCase {
 		$this->assertNotEquals( count( $schedules ), count( $new_schedules ) );
 	}//end test_delete_schedule
 
-	public function test_get_variations() {
+	public function test_create_variation() {
+		$experiment = $this->get_experiment();
 
+		$description = 'test variant [' . date( 'Y-m-d H:i:s' ) . ']';
+		$variation = $this->optimizely->create_variation( $experiment->id, array(
+			'description' => $description,
+		) );
+
+		$this->assertObjectHasAttribute( 'id', $variation );
+		$this->assertEquals( $experiment->id, $variation->experiment_id );
+		$this->assertEquals( $description, $variation->description );
+	}//end test_create_variation
+
+	private function get_variation() {
+		$experiment = $this->get_experiment();
+		$this->assertTrue( count( $experiment->variation_ids ) > 0 );
+
+		$variation = $this->optimizely->get_variation( $experiment->variation_ids[0] );
+
+		return $variation;
+	}//end test_get_variations
+
+	public function test_get_variations() {
+		$experiment = $this->get_experiment();
+
+		$variations = $this->optimizely->get_variations( $experiment->id );
+		$this->assertTrue( is_array( $variations ) && count( $variations ) > 0 );
 	}//end test_get_variations
 
 	public function test_get_variation() {
-
+		$variation = $this->get_variation();
+		$this->assertObjectHasAttribute( 'id', $variation );
 	}//end test_get_variation
 
-	public function test_create_variation() {
-
-	}//end test_create_variation
-
 	public function test_update_variation() {
+		$variation = $this->get_variation();
 
+		$new_description = 'test variant updated [' . date( 'Y-m-d H:i:s' ) . ']';
+
+		$updated_variation = $this->optimizely->update_variation( $variation->id, array(
+			'description' => $new_description
+		) );
+
+		$this->assertObjectHasAttribute( 'id', $updated_variation );
+		$this->assertEquals( $updated_variation->description, $new_description );
 	}//end test_update_variation
 
 	public function test_delete_variation() {
+		$experiment = $this->get_experiment();
+		$variations = $this->optimizely->get_variations( $experiment->id );
 
+		$variation = $variations[ count( $variations ) - 1 ];
+
+		$deleted = $this->optimizely->delete_variation( $variation->id );
+
+		$new_variations = $this->optimizely->get_variations( $experiment->id );
+		$this->assertNotEquals( count( $variations ), count( $new_variations ) );
 	}//end test_delete_variation
 
 	public function test_get_goals() {
@@ -197,7 +236,12 @@ class Optimizely_Test extends PHPUnit_Framework_TestCase {
 	}//end test_get_goals
 
 	public function test_get_goal() {
-
+		/*
+		$goals = $optimizely->get_goals( $project->id );
+		print_r( $goals );
+		$goal = $optimizely->get_goal( $goals[0]->id );
+		print_r( $goal );
+		// */
 	}//end test_get_goal
 
 	public function test_create_goal() {
@@ -225,7 +269,12 @@ class Optimizely_Test extends PHPUnit_Framework_TestCase {
 	}//end test_get_audiences
 
 	public function test_get_audience() {
-
+		/*
+		$audiences = $optimizely->get_audiences( $project->id );
+		print_r( $audiences );
+		$audience = $optimizely->get_audience( $audiences[0]->id );
+		print_r( $audience );
+		// */
 	}//end test_get_audience
 
 	public function test_create_audience() {
@@ -241,7 +290,12 @@ class Optimizely_Test extends PHPUnit_Framework_TestCase {
 	}//end test_get_dimensions
 
 	public function test_get_dimension() {
-
+		/*
+		$dimensions = $optimizely->get_dimensions( $project->id );
+		print_r( $dimensions );
+		$dimension = $optimizely->get_dimension( $dimensions[0]->id );
+		print_r( $dimension );
+		// */
 	}//end test_get_dimension
 
 	public function test_create_dimension() {
@@ -255,37 +309,4 @@ class Optimizely_Test extends PHPUnit_Framework_TestCase {
 	public function test_delete_dimension() {
 
 	}//end test_delete_dimension
-
-
-	/*
-	@TODO: Add eventually:
-
-	/*
-	$variations = $optimizely->get_variations( $experiments[43]->id );
-	print_r( $variations );
-	$variation = $optimizely->get_variation( $variations[0]->id );
-	print_r( $variation );
-	// */
-
-	/*
-	$goals = $optimizely->get_goals( $project->id );
-	print_r( $goals );
-	$goal = $optimizely->get_goal( $goals[0]->id );
-	print_r( $goal );
-	// */
-
-	/*
-	$dimensions = $optimizely->get_dimensions( $project->id );
-	print_r( $dimensions );
-	$dimension = $optimizely->get_dimension( $dimensions[0]->id );
-	print_r( $dimension );
-	// */
-
-	/*
-	$audiences = $optimizely->get_audiences( $project->id );
-	print_r( $audiences );
-	$audience = $optimizely->get_audience( $audiences[0]->id );
-	print_r( $audience );
-	// */
-
 }// end class

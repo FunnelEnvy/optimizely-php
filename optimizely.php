@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Version 0.1
+ * Version 0.2
  */
 
 class Optimizely {
@@ -28,7 +28,7 @@ class Optimizely {
 	/**
 	 * user agent to provide on requests
 	 */
-	protected $useragent = 'PHP Optimizely v0.1';
+	protected $useragent = 'PHP Optimizely v0.2';
 
 	/**
 	 * default timeout
@@ -330,11 +330,7 @@ class Optimizely {
 	/**
 	 * Delete a schedule.
 	 */
-	public function delete_schedule( $schedule_id, $make_inactive = FALSE ) {
-		if ( $make_inactive ) {
-			return $this->update_schedule( $schedule_id, array( 'status' => 'INACTIVE' ) );
-		}//end if
-
+	public function delete_schedule( $schedule_id ) {
 		return $this->request( array(
 			'function' => 'schedules/' . abs( intval( $schedule_id ) ),
 			'method' => 'DELETE',
@@ -434,7 +430,7 @@ class Optimizely {
 					return FALSE;
 				}//end if
 
-				if ( $options['target_to_experiments'] ) {
+				if ( FALSE === $options['target_to_experiments'] ) {
 					if ( ! isset( $options['target_urls'] )
 					  || ! isset( $options['target_url_match_types'] ) ) {
 						return FALSE;
@@ -518,13 +514,13 @@ class Optimizely {
 	public function remove_goal( $experiment_id, $goal_id ) {
 		$goal = $this->get_goal( $goal_id );
 
-		if ( ! isset( $goal['experiment_ids'] ) ) {
+		if ( ! isset( $goal->experiment_ids ) ) {
 			return FALSE;
 		}//end if
 
-		$goal['experiment_ids'][] = array_diff( $goal['experiment_ids'], array( $experiment_id ) );
+		$goal->experiment_ids = array_diff( $goal->experiment_ids, array( $experiment_id ) );
 
-		return $this->update_goal( $goal_id, array( 'experiment_ids' => $goal['experiment_ids'] ) );
+		return $this->update_goal( $goal_id, array( 'experiment_ids' => $goal->experiment_ids ) );
 	}//end remove_goal
 
 	/**

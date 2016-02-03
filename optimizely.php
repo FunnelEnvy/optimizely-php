@@ -46,9 +46,14 @@ class Optimizely {
 	protected $ssl_verifypeer = FALSE;
 
 	/**
-	 * Optimize API token
+	 * Optimizely API token
 	 */
 	protected $api_token;
+
+	/**
+	 * Optimizely API token type
+	 */
+	protected $token_type = 'default';
 
 	/**
 	 * base url for API
@@ -63,8 +68,9 @@ class Optimizely {
 	/**
 	 * Setup the object
 	 */
-	public function __construct( $api_token ) {
+	public function __construct( $api_token, $token_type = 'default' ) {
 		$this->api_token = $api_token;
+		$this->token_type = $token_type;
 	}// end __construct
 
 	/**
@@ -91,10 +97,18 @@ class Optimizely {
 		curl_setopt( $c, CURLOPT_SSL_VERIFYPEER, $this->ssl_verifypeer );
 		curl_setopt( $c, CURLOPT_HEADER, FALSE );
 		curl_setopt( $c, CURLOPT_RETURNTRANSFER, TRUE );
-		curl_setopt( $c, CURLOPT_HTTPHEADER, array(
-			'Token: ' . $this->api_token,
-			'Content-Type: application/json'
-		) );
+
+		if ( $this->token_type === 'oauth' ) {
+			curl_setopt( $c, CURLOPT_HTTPHEADER, array(
+				'Authorization: Bearer ' . $this->api_token,
+				'Content-Type: application/json'
+			) );
+		} else {
+			curl_setopt( $c, CURLOPT_HTTPHEADER, array(
+				'Token: ' . $this->api_token,
+				'Content-Type: application/json'
+			) );
+		}		
 
 		$url = $this->api_url . $options['function'];
 

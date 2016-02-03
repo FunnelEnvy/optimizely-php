@@ -247,7 +247,7 @@ class Optimizely {
 			'function' => 'experiments/' . abs( intval( $experiment_id ) ) . '/stats' . $extra,
 			'method' => 'GET',
 		) );
-	}// end get_experiment_results
+	}// end get_experiment_stats
 
 	/**
 	 * Creates a new experiment

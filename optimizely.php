@@ -232,6 +232,24 @@ class Optimizely {
 	}// end get_experiment_results
 
 	/**
+	 * Get the top-level results (stats) of an experiment, including number of visitors,
+	 * number of conversions, and chance to beat baseline for each variation.
+	 */
+	public function get_experiment_stats( $experiment_id, $options = array() ) {
+		// @TODO: support options
+		// @TODO: check for 503 in case this endpoint is overloaded (from docs)
+		$extra = '';
+		if ( $options ) {
+			$extra = '?' . http_build_query( $options );
+		}//end if
+
+		return $this->request( array(
+			'function' => 'experiments/' . abs( intval( $experiment_id ) ) . '/stats' . $extra,
+			'method' => 'GET',
+		) );
+	}// end get_experiment_results
+
+	/**
 	 * Creates a new experiment
 	 */
 	public function create_experiment( $project_id, $options ) {

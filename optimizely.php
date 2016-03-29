@@ -46,9 +46,14 @@ class Optimizely {
 	protected $ssl_verifypeer = FALSE;
 
 	/**
-	 * Optimize API token
+	 * Optimizely API token
 	 */
 	protected $api_token;
+
+	/**
+	 * Optimizely API token type
+	 */
+	protected $token_type = 'default';
 
 	/**
 	 * base url for API
@@ -62,13 +67,17 @@ class Optimizely {
 
 	/**
 	 * Setup the object
+	 * @param string $api_token API token provided by Optimizely
+	 * @param string $token_type Type of token to use
 	 */
-	public function __construct( $api_token ) {
+	public function __construct( $api_token, $token_type = 'default' ) {
 		$this->api_token = $api_token;
+		$this->token_type = $token_type;
 	}// end __construct
 
 	/**
-	 * allow late setting of API token
+	 * Allow late setting of API token
+	 * @param string $api_token API token provided by Optimizely
 	 */
 	public function set_api_token( $api_token ) {
 		$this->api_token = $api_token;
@@ -76,6 +85,7 @@ class Optimizely {
 
 	/**
 	 * Uses curl to hit hit the API, override this function to use a different method
+	 * @param array $options Options for request
 	 */
 	protected function request( $options ) {
 		if ( ! $this->api_token ) {
@@ -91,10 +101,18 @@ class Optimizely {
 		curl_setopt( $c, CURLOPT_SSL_VERIFYPEER, $this->ssl_verifypeer );
 		curl_setopt( $c, CURLOPT_HEADER, FALSE );
 		curl_setopt( $c, CURLOPT_RETURNTRANSFER, TRUE );
-		curl_setopt( $c, CURLOPT_HTTPHEADER, array(
-			'Token: ' . $this->api_token,
-			'Content-Type: application/json'
-		) );
+
+		if ( $this->token_type === 'oauth' ) {
+			curl_setopt( $c, CURLOPT_HTTPHEADER, array(
+				'Authorization: Bearer ' . $this->api_token,
+				'Content-Type: application/json'
+			) );
+		} else {
+			curl_setopt( $c, CURLOPT_HTTPHEADER, array(
+				'Token: ' . $this->api_token,
+				'Content-Type: application/json'
+			) );
+		}		
 
 		$url = $this->api_url . $options['function'];
 
@@ -144,6 +162,7 @@ class Optimizely {
 
 	/**
 	 * Get metadata for a single project.
+	 * @param string|integer $project_id ID of project to get
 	 */
 	public function get_project( $project_id ) {
 		return $this->request( array(
@@ -155,6 +174,7 @@ class Optimizely {
 	/**
 	 * Create a new project in your account. The project_name is required in the options.
 	 * The other editable arguments are all optional.
+	 * @param array $options Options for project
 	 */
 	public function create_project( $options ) {
 
@@ -184,6 +204,8 @@ class Optimizely {
 
 	/**
 	 * update a project
+	 * @param string|integer $project_id ID of project to get
+	 * @param array $options Options for experiment
 	 */
 	public function update_project( $project_id, $options ) {
 		return $this->request( array(
@@ -195,6 +217,7 @@ class Optimizely {
 
 	/**
 	 * Get a list of all the experiments in a project.
+	 * @param string|integer $project_id ID of project to get the experiments from
 	 */
 	public function get_experiments( $project_id ) {
 		return $this->request( array(
@@ -205,6 +228,7 @@ class Optimizely {
 
 	/**
 	 * Get metadata for a single experiment.
+	 * @param integer $experiment_id ID of experiment to get
 	 */
 	public function get_experiment( $experiment_id ) {
 		return $this->request( array(
@@ -216,6 +240,8 @@ class Optimizely {
 	/**
 	 * Get the top-level results of an experiment, including number of visitors,
 	 * number of conversions, and chance to beat baseline for each variation.
+	 * @param string|integer $experiment_id ID of experiment to get the results for
+	 * @param array $options Options for experiment
 	 */
 	public function get_experiment_results( $experiment_id, $options = array() ) {
 		// @TODO: support options
@@ -234,6 +260,8 @@ class Optimizely {
 	/**
 	 * Get the top-level results (stats) of an experiment, including number of visitors,
 	 * number of conversions, and chance to beat baseline for each variation.
+	 * @param string|integer $experiment_id ID of experiment to get the results for
+	 * @param array $options Options for experiment
 	 */
 	public function get_experiment_stats( $experiment_id, $options = array() ) {
 		// @TODO: support options
@@ -251,6 +279,8 @@ class Optimizely {
 
 	/**
 	 * Creates a new experiment
+	 * @param string|integer $project_id ID of project for the new experiment
+	 * @param array $options Options for experiment
 	 */
 	public function create_experiment( $project_id, $options ) {
 		if ( ! isset( $options['description'] )
@@ -267,6 +297,8 @@ class Optimizely {
 
 	/**
 	 * Update an experiment
+	 * @param string|integer $experiment_id ID of experiment to update
+	 * @param array $options Options for experiment
 	 */
 	public function update_experiment( $experiment_id, $options ) {
 		return $this->request( array(
@@ -278,6 +310,8 @@ class Optimizely {
 
 	/**
 	 * Delete an experiment
+	 * @param string|integer $experiment_id ID of experiment to update
+	 * @param boolean $archive Whether to archive or not
 	 */
 	public function delete_experiment( $experiment_id, $archive = TRUE ) {
 		if ( $archive ) {
@@ -293,6 +327,7 @@ class Optimizely {
 	/**
 	 * See a list containing the current schedule for an experiment as well as any previously
 	 * created schedules. The current schedule will be marked ACTIVE and any previously created schedules will be marked INACTIVE.
+	 * @param string|integer $experiment_id ID of experiment to get schedules for
 	 */
 	public function get_schedules( $experiment_id ) {
 		return $this->request( array(
@@ -303,6 +338,7 @@ class Optimizely {
 
 	/**
 	 * Get data about a particular schedule, including the start time and stop time of the associated experiment.
+	 * @param string|integer $schedule_id ID of schedule to get
 	 */
 	public function get_schedule( $schedule_id ) {
 		return $this->request( array(
@@ -313,6 +349,8 @@ class Optimizely {
 
 	/**
 	 * Create a schedule for an experiment.
+	 * @param string|integer $experiment_id ID of experiment to create schedule for
+	 * @param array $options Options for schedule
 	 */
 	public function create_schedule( $experiment_id, $options ) {
 		// requires either start_time or end_time
@@ -330,6 +368,8 @@ class Optimizely {
 
 	/**
 	 * Update a schedule.
+	 * @param string|integer $schedule_id ID of schedule to update
+	 * @param array $options Options for schedule
 	 */
 	public function update_schedule( $schedule_id, $options ) {
 		// requires either start_time or end_time
@@ -347,6 +387,7 @@ class Optimizely {
 
 	/**
 	 * Delete a schedule.
+	 * @param string|integer $schedule_id ID of schedule to delete
 	 */
 	public function delete_schedule( $schedule_id ) {
 		return $this->request( array(
@@ -357,6 +398,7 @@ class Optimizely {
 
 	/**
 	 * List all variations associated with the experiment.
+	 * @param string|integer $experiment_id ID of experiment to get variations for
 	 */
 	public function get_variations( $experiment_id ) {
 		return $this->request( array(
@@ -367,6 +409,7 @@ class Optimizely {
 
 	/**
 	 * Get metadata for a single variation.
+	 * @param string|integer $variation_id ID of variation to get
 	 */
 	public function get_variation( $variation_id ) {
 		return $this->request( array(
@@ -377,6 +420,8 @@ class Optimizely {
 
 	/**
 	 * Create a variation
+	 * @param string|integer $experiment_id ID of experiment to create variation for
+	 * @param array $options Options for variation
 	 */
 	public function create_variation( $experiment_id, $options ) {
 		if ( ! isset( $options['description'] ) ) {
@@ -392,6 +437,8 @@ class Optimizely {
 
 	/**
 	 * Update a variation
+	 * @param string|integer $variation_id ID of variation to update
+	 * @param array $options Options for variation
 	 */
 	public function update_variation( $variation_id, $options ) {
 		return $this->request( array(
@@ -403,6 +450,7 @@ class Optimizely {
 
 	/**
 	 * Delete a variation
+	 * @param string|integer $variation_id ID of variation to delete
 	 */
 	public function delete_variation( $variation_id ) {
 		return $this->request( array(
@@ -413,6 +461,7 @@ class Optimizely {
 
 	/**
 	 * List all goals associated with the project.
+	 * @param string|integer $project_id ID of project to get the goals for
 	 */
 	public function get_goals( $project_id ) {
 		return $this->request( array(
@@ -423,6 +472,7 @@ class Optimizely {
 
 	/**
 	 * Get metadata for a single goal.
+	 * @param string|integer $goal_id ID of goal to get
 	 */
 	public function get_goal( $goal_id ) {
 		return $this->request( array(
@@ -433,6 +483,8 @@ class Optimizely {
 
 	/**
 	 * Create a goal
+	 * @param string|integer $project_id ID of project to create the goal for
+	 * @param array $options Options for goal
 	 */
 	public function create_goal( $project_id, $options = array() ) {
 		if ( ! isset( $options['title'] )
@@ -490,6 +542,8 @@ class Optimizely {
 
 	/**
 	 * Update a goal
+	 * @param string|integer $goal_id ID of goal to update
+	 * @param array $options Options for goal
 	 */
 	public function update_goal( $goal_id, $options ) {
 		return $this->request( array(
@@ -502,6 +556,7 @@ class Optimizely {
 	/**
 	 * Delete a goal (in general, you don't want to do this)
 	 * See remove_goal function for preferred approach
+	 * @param string|integer $goal_id ID of goal to delete
 	 */
 	public function delete_goal( $goal_id ) {
 		return $this->request( array(
@@ -512,6 +567,8 @@ class Optimizely {
 
 	/**
  	 * add a goal to an experiment
+ 	 * @param string|integer $experiment_id ID of experiment to add goal to
+	 * @param string|integer $goal_id ID of goal to add to experiment
  	 */
 	public function add_goal( $experiment_id, $goal_id ) {
 		$goal = $this->get_goal( $goal_id );
@@ -528,6 +585,8 @@ class Optimizely {
 
 	/**
 	 * remove a goal from an experiment
+ 	 * @param string|integer $experiment_id ID of experiment to remove goal from
+	 * @param string|integer $goal_id ID of goal to remove from experiment
 	 */
 	public function remove_goal( $experiment_id, $goal_id ) {
 		$goal = $this->get_goal( $goal_id );
@@ -543,6 +602,7 @@ class Optimizely {
 
 	/**
 	 * List all audiences associated with the project.
+	 * @param string|integer $project_id ID of project to get the audiences for
 	 */
 	public function get_audiences( $project_id ) {
 		return $this->request( array(
@@ -553,6 +613,7 @@ class Optimizely {
 
 	/**
 	 * Get metadata for a single audience.
+	 * @param string|integer $audience_id ID of audience to get
 	 */
 	public function get_audience( $audience_id ) {
 		return $this->request( array(
@@ -563,6 +624,8 @@ class Optimizely {
 
 	/**
 	 * Create an audience
+	 * @param string|integer $project_id ID of project to create the audience for
+	 * @param array $options Options for audience
 	 */
 	public function create_audience( $project_id, $options ) {
 		if ( ! isset( $options['name'] ) ) {
@@ -578,6 +641,8 @@ class Optimizely {
 
 	/**
 	 * Update an audience
+	 * @param string|integer $audience_id ID of audience to update
+	 * @param array $options Options for audience
 	 */
 	public function update_audience( $audience_id, $options ) {
 		return $this->request( array(
@@ -589,6 +654,7 @@ class Optimizely {
 
 	/**
 	 * List all dimensions associated with the project.
+	 * @param string|integer $project_id ID of project to get the dimensions for
 	 */
 	public function get_dimensions( $project_id ) {
 		return $this->request( array(
@@ -599,6 +665,7 @@ class Optimizely {
 
 	/**
 	 * Get metadata for a single dimension.
+	 * @param string|integer $dimension_id ID of dimension to get
 	 */
 	public function get_dimension( $dimension_id ) {
 		return $this->request( array(
@@ -609,6 +676,8 @@ class Optimizely {
 
 	/**
 	 * Create a dimension
+	 * @param string|integer $project_id ID of project to create the dimensions for
+	 * @param array $options Options for dimension
 	 */
 	public function create_dimension( $project_id, $options ) {
 		if ( ! isset( $options['name'] ) ) {
@@ -624,6 +693,8 @@ class Optimizely {
 
 	/**
 	 * Update a dimension
+	 * @param string|integer $dimension_id ID of dimension to update
+	 * @param array $options Options for dimension
 	 */
 	public function update_dimension( $dimension_id, $options ) {
 		return $this->request( array(
@@ -635,6 +706,7 @@ class Optimizely {
 
 	/**
 	 * Delete a dimension, not generally recommended
+	 * @param string|integer $dimension_id ID of dimension to delete
 	 */
 	public function delete_dimension( $dimension_id ) {
 		return $this->request( array(
